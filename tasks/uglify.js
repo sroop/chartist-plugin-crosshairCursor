@@ -18,7 +18,7 @@ module.exports = function (grunt) {
         sourceMapIncludeSources: true
       },
       files: {
-        '<%= pkg.config.dist %>/chartist-crosshairCursor.min.js': ['<%= pkg.config.dist %>/chartist-crosshairCursor.js']
+        '<%= pkg.config.dist %>/chartist-plugin-crosshairCursor.min.js': ['<%= pkg.config.dist %>/chartist-plugin-crosshairCursor.js']
       }
     }
   };

@@ -1,8 +1,8 @@
 {
-  "name": "chartist-crosshairCursor",
+  "name": "chartist-plugin-crosshairCursor",
   "version": "0.0.4",
   "main": [
-    "./dist/chartist-crosshairCursor.min.js"
+    "./dist/chartist-plugin-crosshairCursor.min.js"
   ],
   "dependencies": {
     "chartist": "~0.9.0"

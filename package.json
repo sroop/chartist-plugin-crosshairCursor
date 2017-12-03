@@ -1,15 +1,15 @@
 {
-  "name": "chartist-crosshairCursor",
+  "name": "chartist-plugin-crosshairCursor",
   "description": "Crosshair cursor plugin for Chartist.js",
   "version": "0.0.5",
   "author": "Sroop Sunar",
-  "homepage": "https://sroop.github.io/chartist-crosshairCursor",
+  "homepage": "https://sroop.github.io/chartist-plugin-crosshairCursor",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sroop/chartist-crosshairCursor.git"
+    "url": "https://github.com/sroop/chartist-plugin-crosshairCursor.git"
   },
   "bugs": {
-    "url": "https://github.com/sroop/chartist-crosshairCursor/issues"
+    "url": "https://github.com/sroop/chartist-plugin-crosshairCursor/issues"
   },
   "keywords": [
     "chartist",
@@ -21,12 +21,12 @@
     "package.json",
     "README.md"
   ],
-  "main": "dist/chartist-crosshairCursor.js",
-  "browser": "dist/chartist-crosshairCursor.js",
+  "main": "dist/chartist-plugin-crosshairCursor.js",
+  "browser": "dist/chartist-plugin-crosshairCursor.js",
   "licenses": [
     {
       "type": "WTFPL",
-      "url": "https://github.com/sroop/chartist-crosshairCursor/blob/master/LICENSE"
+      "url": "https://github.com/sroop/chartist-plugin-crosshairCursor/blob/master/LICENSE"
     }
   ],
   "dependencies": {},
@@ -52,7 +52,7 @@
     "test": "grunt test"
   },
   "config": {
-    "banner": "/* chartist-crosshairCursor <%= pkg.version %>\n * Copyright © <%= year %> Sroop Sunar\n * Free to use under the WTFPL license.\n * http://www.wtfpl.net/\n */\n",
+    "banner": "/* chartist-plugin-crosshairCursor <%= pkg.version %>\n * Copyright © <%= year %> Sroop Sunar\n * Free to use under the WTFPL license.\n * http://www.wtfpl.net/\n */\n",
     "src": "src",
     "dist": "dist",
     "tmp": ".tmp",

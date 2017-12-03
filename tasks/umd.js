@@ -12,8 +12,8 @@
 module.exports = function (grunt) {
   return {
     dist: {
-      src: '<%= pkg.config.src %>/scripts/chartist-crosshairCursor.js',
-      dest: '<%= pkg.config.dist %>/chartist-crosshairCursor.js',
+      src: '<%= pkg.config.src %>/scripts/chartist-plugin-crosshairCursor.js',
+      dest: '<%= pkg.config.dist %>/chartist-plugin-crosshairCursor.js',
       objectToExport: 'Chartist.plugins.crosshairCursor',
       indent: '  ',
       deps: {
