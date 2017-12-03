@@ -1,0 +1,18 @@
+{
+  "name": "chartist-crosshairCursor",
+  "version": "0.0.4",
+  "main": [
+    "./dist/chartist-crosshairCursor.min.js"
+  ],
+  "dependencies": {
+    "chartist": "~0.9.0"
+  },
+  "ignore": [
+    ".*",
+    "Gruntfile.js",
+    "package.json",
+    "node_modules",
+    "src",
+    "test"
+  ]
+}
