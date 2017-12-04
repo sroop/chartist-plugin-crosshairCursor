@@ -2,7 +2,7 @@
 
 This plugin generates a crosshair cursor for your line chart which highlights and notifies you of any data points that fall along the crosshair axis.
 
-Please visit http://gionkunz.github.io/chartist-js/plugins.html for more information.
+[Live demo](https://sroop.github.io/chartist-plugin-crosshairCursor/example.html).
 
 ## Available options and their defaults
 
