@@ -131,6 +131,7 @@
 
           chart.on('draw', function(data) {
             if(data.type === 'point') {
+              if(data.index === 0) { dataPoints = []; }
               dataPoints.push(formattedPointData(data));
             }
           });

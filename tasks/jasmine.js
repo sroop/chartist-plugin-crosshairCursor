@@ -14,7 +14,7 @@ module.exports = function (grunt) {
     dist: {
       src: [
         'node_modules/chartist/dist/chartist.js',
-        '<%= pkg.config.src %>/scripts/chartist-plugin-pointlabels.js'
+        '<%= pkg.config.src %>/scripts/chartist-plugin-crosshairCursor.js'
       ],
       options: {
         specs: '<%= pkg.config.test %>/spec/**/spec-*.js',

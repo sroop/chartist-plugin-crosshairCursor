@@ -10,6 +10,8 @@ describe('crosshairCursor', function () {
   });
 
   it('should be defined in chartist', function () {
+    expect(window.Chartist).toBeDefined();
+    expect(window.Chartist.plugins).toBeDefined();
     expect(window.Chartist.plugins.crosshairCursor).toBeDefined();
   });
 });
