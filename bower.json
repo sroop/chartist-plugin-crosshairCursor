@@ -1,6 +1,6 @@
 {
   "name": "chartist-plugin-crosshairCursor",
-  "version": "0.0.4",
+  "description": "A Chartist.js plugin to easily add a data crosshair to your charts",
   "main": [
     "./dist/chartist-plugin-crosshairCursor.min.js"
   ],
@@ -14,5 +14,7 @@
     "node_modules",
     "src",
     "test"
-  ]
+  ],
+  "keywords": ["crosshair", "chartist"],
+  "authors": ["Sroop Sunar"]
 }

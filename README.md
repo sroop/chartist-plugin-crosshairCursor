@@ -1,8 +1,14 @@
 # Crosshair cursor plugin for Chartist.js
 
-This plugin generates a crosshair cursor for your line chart which highlights and notifies you of any data points that fall along the crosshair axis.
+A Chartist.js plugin to easily add a data crosshair to your charts!
 
 [Live demo](https://sroop.github.io/chartist-plugin-crosshairCursor/example.html).
+
+## Installation
+
+```
+bower install chartist-plugin-crosshairCursor
+```
 
 ## Available options and their defaults
 
@@ -72,7 +78,7 @@ chart.on('crosshairCursor:hovered', function(highlightedPoints) {
 ${wrapperName} {} // the wrapperName specified in the plugin options
 #crosshairCursor-x {} // the x-axis cursor
 #crosshairCursor-y {} // the y-axis cursor
-line.crosshairCursor-highlight {} // point highlighting
+.ct-point.crosshairCursor-highlight {} // point highlighting
 ```
 
 ### Sample CSS 
