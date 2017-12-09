@@ -3,21 +3,66 @@
   <head>
     <title>Chartist Crosshair Cursor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.0/chartist.min.css">
+    <link href='https://fonts.googleapis.com/css?family=Roboto+Slab' rel='stylesheet' type='text/css'>
     <style type="text/css">
+      body {
+        margin: 0px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: 'Roboto Slab', serif;
+        letter-spacing: 1px;
+      }
+      .header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #000;
+        color: white;
+        width: 100%;
+        padding: 40px 0px 20px 0px;
+        position: relative;
+      }
+      h1 { margin-bottom: 0px; text-transform: uppercase; }
+      h3 { margin-top: 10px; text-transform: uppercase; font-size: 13px; }
+      .info { width: 500px; }
       .myChart {
         width: 600px;
-        height: 300px;
+        height: 120px;
+        margin: 50px;
+      }
+      .ct-point {
+        stroke-width: 13px;
       }
       .ct-point.crosshairCursor-highlight {
         stroke: #FFDA34;
       }
+      .ct-grid { 
+        stroke: black;
+        stroke-width: 1px;
+        stroke-dasharray: 0px;
+      }
+      .ct-label { 
+        color: black;
+        font-size: 13px;
+      }
+      .ct-horizontal {
+        margin-top: 10px;
+      }
+      .ct-vertical {
+        margin-left: -10px;
+      }
     </style>
   </head>
   <body>
+    <div class="header">
+      <h1>Chartist Crosshair Cursor</h1>
+      <h3>A Chartist.js plugin to easily add a data crosshair to your charts!</h3>
+    </div>
     <div class='chart'></div>
     <div class='info'>
-      <p>Frozen: { data.frozen | json }</p>
-      <p>Highlighted points: { data.highlightedPoints | json }</p>
+      <p>FROZEN: { data.frozen | json }</p>
+      <p>HIGHLIGHTED POINTS: { data.highlightedPoints | json }</p>
     </div>
 
     <script src='https://cdnjs.cloudflare.com/ajax/libs/rivets/0.9.6/rivets.bundled.min.js'></script>
@@ -27,7 +72,7 @@
       var data = { frozen: false }
 
       var chart = new Chartist.Line('.chart', {
-      labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      labels: ['A', 'B', 'C', 'D', 'E'],
         series: [
           {
             name: 'line',
