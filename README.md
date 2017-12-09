@@ -48,7 +48,7 @@ var chart = new Chartist.Line('.chart', {
      fullWidth: true,
      chartPadding: { right: 40 },
      plugins: [
-       crosshairCursor({
+       Chartist.plugins.crosshairCursor({
          wrapperName: '.myChart',
          type: 'full', // x, y, full
          clickToFreeze: true, // true, false
