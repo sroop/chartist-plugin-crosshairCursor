@@ -92,22 +92,37 @@
           plugins: [
             Chartist.plugins.crosshairCursor({
               wrapperName: '.myChart',
-              type: 'full',
-              clickToFreeze: true,
-              sendDataOn: 'hover',
-              initial: 1
+              x: true,
+              y: true,
+              click: function(cursor, points) {
+                // cursor.isFrozen() ? cursor.unfreeze() : cursor.freeze() // click to freeze
+                data.highlightedPoints = points.length // click to see point data
+              },
+              pointHover: function(cursor, points) {
+                // data.highlightedPoints = points.length // hover to see point data
+              },
+              frozenStatus: function(status) {
+                data.frozen = status
+              }
+              // initial: 1
             })
           ]
         }
       );
 
-      chart.on('crosshairCursor:frozen', function (isFrozen) {
-        data.frozen = isFrozen
-      }, false);
+      // Using freeze functions however the user wants:
+      var onkeydown = function(){
+        chart.crosshairCursor.isFrozen() ? chart.crosshairCursor.unfreeze() : chart.crosshairCursor.freeze()
+      };
+      if(chart.crosshairCursor) chart.crosshairCursor.element().addEventListener('onkeydown', onkeydown)
 
-      chart.on('crosshairCursor:hovered', function(highlightedPoints) {
-        data.highlightedPoints = highlightedPoints
-      }, false);
+      // chart.on('crosshairCursor:frozen', function (isFrozen) {
+      //   data.frozen = isFrozen
+      // }, false);
+
+      // chart.on('crosshairCursor:hovered', function(highlightedPoints) {
+      //   data.highlightedPoints = highlightedPoints
+      // }, false);
 
       rivets.formatters.json = JSON.stringify
       rivets.bind(document.querySelector('.info'), { data: data })

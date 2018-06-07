@@ -7,9 +7,7 @@
   'use strict';
 
   var defaultOptions = {
-    wrapperName: '',
-    type: 'full',
-    sendDataOn: 'hover'
+    wrapperName: ''
   };
 
   Chartist.plugins = Chartist.plugins || {};
@@ -24,10 +22,16 @@
         var meta = points.map(function(point) {
           return point.meta;
         });
+        if(options.pointHover) {
+          options.pointHover(chart.crosshairCursor, meta);
+        }
         chart.eventEmitter.emit('crosshairCursor:hovered', meta);
       };
 
       var sendFrozenStatus = function(frozenStatus) {
+        if(options.frozenStatus) {
+          options.frozenStatus(frozenStatus)
+        }
         chart.eventEmitter.emit('crosshairCursor:frozen', frozenStatus);
       };
 
@@ -35,10 +39,6 @@
         return dataPoints.filter(function(point) {
           return point.current;
         });
-      };
-
-      var toPixels = function(number) {
-        return number + 'px';
       };
 
       var generateCursor = function(type, element) {
@@ -74,23 +74,21 @@
         };
       };
 
-      var toggleHighlight = function(points, addHighlight) {
-        points.forEach(function(point) {
-          if(addHighlight) {
-            point.element.addClass('crosshairCursor-highlight');
-          } else {
-            point.element.removeClass('crosshairCursor-highlight');
-          }
-        });
+      var toggleHighlight = function(point, highlight) {
+        if(highlight) {
+          point.element.addClass('crosshairCursor-highlight');
+        } else {
+          point.element.removeClass('crosshairCursor-highlight');
+        }
       };
 
       var cursorIsOnPoint = function(cursorPosition, pointPosition, padding) {
-        if(options.type === 'x') {
-          return inPointArea(cursorPosition.x, pointPosition.x, padding);
-        } else if(options.type === 'y') {
-          return inPointArea(cursorPosition.y, pointPosition.y , padding);
-        } else if(options.type === 'full') {
+        if(options.x && options.y) {
           return inPointArea(cursorPosition.x, pointPosition.x, padding) || inPointArea(cursorPosition.y, pointPosition.y , padding);
+        } else if(options.x) {
+          return inPointArea(cursorPosition.x, pointPosition.x, padding);
+        } else if(options.y) {
+          return inPointArea(cursorPosition.y, pointPosition.y , padding);
         }
       };
 
@@ -126,80 +124,114 @@
           var pointWidth = window.getComputedStyle(ctPoints[0])['stroke-width'].replace('px', '');
           var pointPadding = +pointWidth/2;
 
-          var initial = options.initial > 0 ? options.initial - 1 : undefined;
-          if(options.initial) { dataPoints[initial].current = true; }
-          if(currentPoints().length) { 
-            sendMetaData(currentPoints());
-            toggleHighlight(currentPoints(), true);
-          }
+          // var initial = options.initial > 0 ? options.initial - 1 : undefined;
+          // if(options.initial) { dataPoints[initial].current = true; }
+          // if(currentPoints().length) { 
+          //   sendMetaData(currentPoints());
+          //   toggleHighlight(currentPoints(), true);
+          // }
 
-          element.onclick = function(e) {
-            e.stopPropagation();
-            if(!frozen && currentPoints().length && options.sendDataOn === 'click') {
-              sendMetaData(currentPoints());
-              if(options.clickToFreeze) {
-                frozen = !frozen;
-                sendFrozenStatus(frozen);
-              }
-            } else if(options.clickToFreeze) {
-              frozen = !frozen;
-              sendFrozenStatus(frozen);
+          var onMouseEnter = function(){
+            if(options.x && options.y) {
+              xCrosshair.style.display = '';
+              yCrosshair.style.display = '';
+            } else if(options.x) {
+              xCrosshair.style.display = '';
+            } else if(options.y) {
+              yCrosshair.style.display = '';
             }
           };
 
-          if(dataPoints.length) {
-            element.onmousemove = function(e){
-              if(!frozen) {
-                var pendingEvent = false;
-                var pos = {};
-                pos.x = e.pageX - this.offsetLeft;
-                pos.y = e.pageY - this.offsetTop;
-                xCrosshair.style.left = toPixels(pos.x);
-                yCrosshair.style.top = toPixels(pos.y);
+          var onMouseMove = function(e){
+            if(!frozen) {
+              // var pendingEvent = false;
+              var pos = {};
+              pos.x = e.pageX - this.offsetLeft;
+              pos.y = e.pageY - this.offsetTop;
+              xCrosshair.style.left = pos.x + 'px';
+              yCrosshair.style.top = pos.y + 'px';
 
+              dataPoints.forEach(function(point) {
+                var highlighted = cursorIsOnPoint(pos, point.position, pointPadding);
+                toggleHighlight(point, highlighted);
+                // if(point.current !== onPoint && !pendingEvent) {
+                //   pendingEvent = true;
+                // }
+                point.current = highlighted;
+              });
 
-                dataPoints.forEach(function(point) {
-                  var onPoint = cursorIsOnPoint(pos, point.position, pointPadding);
-                  toggleHighlight([point], onPoint);
-                  if(point.current !== onPoint && !pendingEvent) {
-                    pendingEvent = true;
-                  }
-                  point.current = onPoint;
-                });
+              sendMetaData(currentPoints());
+              // if(currentPoints().length && pendingEvent) { 
+              //   sendMetaData(currentPoints());
+              // } else if(!currentPoints().length && pendingEvent) {
+              //   sendMetaData([]);
+              // }
+            }
+          };
 
-                if(currentPoints().length && options.sendDataOn === 'hover' && pendingEvent) { 
-                  sendMetaData(currentPoints());
-                } else if(!currentPoints().length && pendingEvent) {
-                  sendMetaData([]);
-                }
+          var onClick = function(e) {
+            e.stopPropagation();
+            
+            if(options.click) {
+              options.click(chart.crosshairCursor, currentPoints())
+            }
+
+            chart.eventEmitter.emit('crosshairCursor:click');
+          };
+
+          var onMouseLeave = function(){
+            if(!frozen) {
+              if(options.x) {
+                xCrosshair.style.display = 'none';
+              } else if(options.y) {
+                yCrosshair.style.display = 'none';
+              } else if(options.x && options.y) {
+                xCrosshair.style.display = 'none';
+                yCrosshair.style.display = 'none';
               }
-            };
-            element.onmouseenter = function(){
-              if(options.type === 'x') {
-                xCrosshair.style.display = '';
-              } else if(options.type === 'y') {
-                yCrosshair.style.display = '';
-              } else if(options.type === 'full') {
-                xCrosshair.style.display = '';
-                yCrosshair.style.display = '';
-              }
-            };
-            element.onmouseleave = function(){
-              if(!frozen) {
-                if(options.type === 'x') {
-                  xCrosshair.style.display = 'none';
-                } else if(options.type === 'y') {
-                  yCrosshair.style.display = 'none';
-                } else if(options.type === 'full') {
-                  xCrosshair.style.display = 'none';
-                  yCrosshair.style.display = 'none';
-                }
-              }
-            };
-          }
+            }
+          };
+
+          chart.crosshairCursor = {
+            create: function() {
+              element.addEventListener('click', onClick)
+              element.addEventListener('mousemove', onMouseMove)
+              element.addEventListener('mouseenter', onMouseEnter)
+              element.addEventListener('mouseleave', onMouseLeave)
+              xCrosshair.style.display = 'none';
+              yCrosshair.style.display = 'none';
+            },
+            destroy: function() {
+              element.removeEventListener('click', onClick, false);
+              element.removeEventListener('mousemove', onMouseMove, false);
+              element.removeEventListener('mouseenter', onMouseEnter, false);
+              element.removeEventListener('mouseleave', onMouseLeave, false);
+              xCrosshair.style.display = 'none';
+              yCrosshair.style.display = 'none';
+            },
+            freeze: function() {
+              frozen = true;
+              sendFrozenStatus(frozen);
+            },
+            unfreeze: function() {
+              frozen = false;
+              sendFrozenStatus(frozen);
+            },
+            isFrozen: function() {
+              return frozen;
+            },
+            currentPoints: function() {
+              return currentPoints();
+            },
+            element: function() {
+              return element;
+            }
+          };
+
+          chart.crosshairCursor.create()
         });
       }
-      
+
     };
   };
 
