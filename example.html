@@ -95,11 +95,11 @@
               x: true,
               y: true,
               click: function(cursor, points) {
-                // cursor.isFrozen() ? cursor.unfreeze() : cursor.freeze() // click to freeze
-                data.highlightedPoints = points.length // click to see point data
+                cursor.isFrozen() ? cursor.unfreeze() : cursor.freeze() // click to freeze
+                // data.highlightedPoints = points.length // click to see point data
               },
               pointHover: function(cursor, points) {
-                // data.highlightedPoints = points.length // hover to see point data
+                data.highlightedPoints = points.length // hover to see point data
               },
               frozenStatus: function(status) {
                 data.frozen = status
