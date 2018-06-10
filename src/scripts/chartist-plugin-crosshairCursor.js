@@ -6,110 +6,38 @@
 (function(window, document, Chartist) {
   'use strict';
 
-  var defaultOptions = {
-    wrapperName: ''
-  };
-
   Chartist.plugins = Chartist.plugins || {};
+
   Chartist.plugins.crosshairCursor = function(options) {
+    var noop = function() {};
+
+    var defaultOptions = {
+      wrapperName: '.crosshairCursorWrapper',
+      x: false,
+      y: false,
+      click: noop,
+      pointHover: noop,
+      frozenStatus: noop,
+      styles: {
+        x: {
+          backgroundColor: '#dedede',
+          width: '1px',
+          height: '95%'
+        },
+        y: {
+          backgroundColor: '#dedede',
+          width: '100%',
+          height: '1px'
+        }
+      }
+    };
 
     options = Chartist.extend({}, defaultOptions, options);
-    var dataPoints = [];
 
     return function crosshairCursor(chart) {
-
-      var sendMetaData = function(points) {
-        var meta = points.map(function(point) {
-          return point.meta;
-        });
-        if(options.pointHover) {
-          options.pointHover(chart.crosshairCursor, meta);
-        }
-        chart.eventEmitter.emit('crosshairCursor:hovered', meta);
-      };
-
-      var sendFrozenStatus = function(frozenStatus) {
-        if(options.frozenStatus) {
-          options.frozenStatus(frozenStatus)
-        }
-        chart.eventEmitter.emit('crosshairCursor:frozen', frozenStatus);
-      };
-
-      var currentPoints = function() {
-        return dataPoints.filter(function(point) {
-          return point.current;
-        });
-      };
-
-      var generateCursor = function(type, element) {
-        var div = document.createElement('div');
-        div.setAttribute('id', 'crosshairCursor-' + type);
-        element.insertBefore(div, element.firstChild);
-        var crosshair = document.querySelector('#crosshairCursor-' + type);
-        crosshair.style.position = 'absolute';
-        crosshair.style.display = 'none';
-        crosshair.style.backgroundColor = '#dedede';
-        if(type === 'x') {
-          crosshair.style.height = '95%';
-          crosshair.style.width = '1px';
-        } else if(type === 'y') {
-          crosshair.style.width = '100%';
-          crosshair.style.height = '1px';
-        }
-        return crosshair;
-      };
-
-      var inPointArea = function(cursorPosition, pointPosition, padding) {
-        return (cursorPosition >= (pointPosition - padding) && cursorPosition <= (pointPosition + padding));
-      };
-
-      var formattedPointData = function(point) {
-        var meta = Chartist.deserialize(point.meta);
-        meta.value = point.value;
-        meta.value.x = point.axisX.ticks[point.index];
-        return {
-          meta: meta,
-          position: {x: Math.round(point.x), y: Math.round(point.y)},
-          element: point.element
-        };
-      };
-
-      var toggleHighlight = function(point, highlight) {
-        if(highlight) {
-          point.element.addClass('crosshairCursor-highlight');
-        } else {
-          point.element.removeClass('crosshairCursor-highlight');
-        }
-      };
-
-      var cursorIsOnPoint = function(cursorPosition, pointPosition, padding) {
-        if(options.x && options.y) {
-          return inPointArea(cursorPosition.x, pointPosition.x, padding) || inPointArea(cursorPosition.y, pointPosition.y , padding);
-        } else if(options.x) {
-          return inPointArea(cursorPosition.x, pointPosition.x, padding);
-        } else if(options.y) {
-          return inPointArea(cursorPosition.y, pointPosition.y , padding);
-        }
-      };
+      var dataPoints = [];
 
       if(chart instanceof Chartist.Line) {
-
-        var element = document.createElement('div');
-        if(options.wrapperName.startsWith('#')) {
-          element.id = options.wrapperName.substr(1);
-        } else if(options.wrapperName.startsWith('.')) {
-          element.className = options.wrapperName.substr(1);
-        } else {
-          throw('Must be a class or id!');
-        }
-        chart.container.parentNode.insertBefore(element, chart.container);
-        element.appendChild(chart.container);
-        element.className = element.className + ' crosshairCursor-wrapper';
-        element.style.cursor = 'pointer';
-        element.style.position = 'relative';
-
-        var xCrosshair = generateCursor('x', element);
-        var yCrosshair = generateCursor('y', element);
 
         chart.on('draw', function(data) {
           if(data.type === 'point') {
@@ -119,120 +47,221 @@
         });
 
         chart.on('created', function() {
-          var frozen = false;
+          function CrosshairCursor() {
+            this.frozen = false
+            this._pointArea = calculatePointArea()
+          };
+
+          CrosshairCursor.prototype.create = function() {
+            var self = this;
+            this._chartWrapper = wrapChart();
+
+            self._crosshairCursor = {};
+            self._crosshairCursor.x = createCrosshairCursor(self._chartWrapper, 'x');
+            self._crosshairCursor.y = createCrosshairCursor(self._chartWrapper, 'y');
+            self.hide(self._crosshairCursor);
+
+            self._chartWrapper.addEventListener('click', clickFn);
+            self._chartWrapper.addEventListener('mousemove', self.move.bind(self));
+            self._chartWrapper.addEventListener('mouseenter', self.show.bind(self));
+            self._chartWrapper.addEventListener('mouseleave', self.hide.bind(self));
+          };
+
+          CrosshairCursor.prototype.destroy = function() {
+            var self = this;
+
+            destroyCrosshairCursor(self._crosshairCursor);
+
+            unwrapChart(self._chartWrapper);
+          };
+
+          CrosshairCursor.prototype.show = function() {
+            showCrosshairCursor(this._crosshairCursor);
+          };
+
+
+          CrosshairCursor.prototype.hide = function() {
+            if(!this.frozen) {
+              hideCrosshairCursor(this._crosshairCursor);
+            }
+          };
+
+          CrosshairCursor.prototype.move = function(e) {
+            if(!this.frozen){
+              moveCrosshairCursor.call(this._chartWrapper, e, this._crosshairCursor, this._pointArea);
+            }
+          };
+
+          CrosshairCursor.prototype.freeze = function() {
+            this.frozen = true;
+            sendFrozenStatus(this.frozen);
+          };
+
+          CrosshairCursor.prototype.unfreeze = function() {
+            this.frozen = false;
+            sendFrozenStatus(this.frozen);
+          };
+
+          CrosshairCursor.prototype.isFrozen = function() {
+            return this.frozen;
+          };
+
+          CrosshairCursor.prototype.currentPoints = function() {
+            return currentPoints();
+          };
+
+          CrosshairCursor.prototype.element = function() {
+            return this._chartWrapper;
+          };
+
+          chart.crosshairCursor = new CrosshairCursor();
+          chart.crosshairCursor.create();
+        });
+
+        var sendMetaData = function(points) {
+          var meta = points.map(function(point) {
+            return point.meta;
+          });
+          options.pointHover(chart.crosshairCursor, meta);
+          chart.eventEmitter.emit('crosshairCursor:hovered', meta);
+        };
+
+        var sendFrozenStatus = function(frozenStatus) {
+          if(options.frozenStatus) {
+            options.frozenStatus(frozenStatus)
+          }
+          chart.eventEmitter.emit('crosshairCursor:frozen', frozenStatus);
+        };
+
+        var currentPoints = function() {
+          return dataPoints.filter(function(point) {
+            return point.current;
+          });
+        };
+
+        var createCrosshairCursor = function(chartWrapper, type) {
+          var div = document.createElement('div');
+          div.setAttribute('id', 'crosshairCursor-' + type);
+          chartWrapper.insertBefore(div, chartWrapper.firstChild);
+          var crosshairCursor = document.querySelector('#crosshairCursor-' + type);
+          crosshairCursor.style.position = 'absolute';
+          styleCrosshairCursor(crosshairCursor, type);
+          return crosshairCursor
+        };
+
+        var destroyCrosshairCursor = function(crosshairCursor) {
+          crosshairCursor.x.remove();
+          crosshairCursor.y.remove();
+        };
+
+        var styleCrosshairCursor = function(crosshairCursor, type) {
+          crosshairCursor.style.height = options.styles[type].height
+          crosshairCursor.style.width = options.styles[type].width
+          crosshairCursor.style.backgroundColor = options.styles[type].backgroundColor
+        };
+
+        var inPointArea = function(cursorPosition, pointPosition, padding) {
+          return (cursorPosition >= (pointPosition - padding) && cursorPosition <= (pointPosition + padding));
+        };
+
+        var formattedPointData = function(point) {
+          var meta = Chartist.deserialize(point.meta);
+          meta.value = point.value;
+          meta.value.x = point.axisX.ticks[point.index];
+          return {
+            meta: meta,
+            position: {x: Math.round(point.x), y: Math.round(point.y)},
+            element: point.element
+          };
+        };
+
+        var toggleHighlight = function(point, highlight) {
+          if(highlight) {
+            point.element.addClass('crosshairCursor-highlight');
+          } else {
+            point.element.removeClass('crosshairCursor-highlight');
+          }
+        };
+
+        var cursorIsOnPoint = function(cursorPosition, pointPosition, padding) {
+          if(options.x && options.y) {
+            return inPointArea(cursorPosition.x, pointPosition.x, padding) || inPointArea(cursorPosition.y, pointPosition.y , padding);
+          } else if(options.x) {
+            return inPointArea(cursorPosition.x, pointPosition.x, padding);
+          } else if(options.y) {
+            return inPointArea(cursorPosition.y, pointPosition.y , padding);
+          }
+        };
+
+        var wrapChart = function() {
+          var element = document.createElement('div');
+          if(options.wrapperName.startsWith('#')) {
+            element.id = options.wrapperName.substr(1);
+          } else if(options.wrapperName.startsWith('.')) {
+            element.className = options.wrapperName.substr(1);
+          } else {
+            throw('Must be a class or id!');
+          }
+          chart.container.parentNode.insertBefore(element, chart.container);
+          element.appendChild(chart.container);
+          element.className = element.className + ' crosshairCursor-wrapper';
+          element.style.cursor = 'pointer';
+          element.style.position = 'relative';
+
+          return element;
+        }
+
+        var unwrapChart = function(chartWrapper) {
+          chartWrapper.outerHTML = chartWrapper.innerHTML;
+        }
+
+        var calculatePointArea = function() {
           var ctPoints = document.querySelectorAll('.ct-point');
           var pointWidth = window.getComputedStyle(ctPoints[0])['stroke-width'].replace('px', '');
-          var pointPadding = +pointWidth/2;
+          return +pointWidth/2;
+        };
 
-          // var initial = options.initial > 0 ? options.initial - 1 : undefined;
-          // if(options.initial) { dataPoints[initial].current = true; }
-          // if(currentPoints().length) { 
-          //   sendMetaData(currentPoints());
-          //   toggleHighlight(currentPoints(), true);
-          // }
+        var showCrosshairCursor = function(crosshairCursor){
+          if(options.x && options.y) {
+            crosshairCursor.x.style.display = '';
+            crosshairCursor.y.style.display = '';
+          } else if(options.x) {
+            crosshairCursor.x.style.display = '';
+          } else if(options.y) {
+            crosshairCursor.y.style.display = '';
+          }
+        };
 
-          var onMouseEnter = function(){
-            if(options.x && options.y) {
-              xCrosshair.style.display = '';
-              yCrosshair.style.display = '';
-            } else if(options.x) {
-              xCrosshair.style.display = '';
-            } else if(options.y) {
-              yCrosshair.style.display = '';
-            }
-          };
+        var moveCrosshairCursor = function(e, crosshairCursor, pointArea){
+          var pos = {};
+          pos.x = e.pageX - this.offsetLeft;
+          pos.y = e.pageY - this.offsetTop;
+          crosshairCursor.x.style.left = pos.x + 'px';
+          crosshairCursor.y.style.top = pos.y + 'px';
 
-          var onMouseMove = function(e){
-            if(!frozen) {
-              // var pendingEvent = false;
-              var pos = {};
-              pos.x = e.pageX - this.offsetLeft;
-              pos.y = e.pageY - this.offsetTop;
-              xCrosshair.style.left = pos.x + 'px';
-              yCrosshair.style.top = pos.y + 'px';
+          dataPoints.forEach(function(point) {
+            var highlighted = cursorIsOnPoint(pos, point.position, pointArea);
+            toggleHighlight(point, highlighted);
+            point.current = highlighted;
+          });
 
-              dataPoints.forEach(function(point) {
-                var highlighted = cursorIsOnPoint(pos, point.position, pointPadding);
-                toggleHighlight(point, highlighted);
-                // if(point.current !== onPoint && !pendingEvent) {
-                //   pendingEvent = true;
-                // }
-                point.current = highlighted;
-              });
+          sendMetaData(currentPoints());
+        };
 
-              sendMetaData(currentPoints());
-              // if(currentPoints().length && pendingEvent) { 
-              //   sendMetaData(currentPoints());
-              // } else if(!currentPoints().length && pendingEvent) {
-              //   sendMetaData([]);
-              // }
-            }
-          };
+        var clickFn = function(e) {
+          e.stopPropagation();
+          options.click(chart.crosshairCursor, currentPoints());
+          chart.eventEmitter.emit('crosshairCursor:click');
+        };
 
-          var onClick = function(e) {
-            e.stopPropagation();
-            
-            if(options.click) {
-              options.click(chart.crosshairCursor, currentPoints())
-            }
-
-            chart.eventEmitter.emit('crosshairCursor:click');
-          };
-
-          var onMouseLeave = function(){
-            if(!frozen) {
-              if(options.x) {
-                xCrosshair.style.display = 'none';
-              } else if(options.y) {
-                yCrosshair.style.display = 'none';
-              } else if(options.x && options.y) {
-                xCrosshair.style.display = 'none';
-                yCrosshair.style.display = 'none';
-              }
-            }
-          };
-
-          chart.crosshairCursor = {
-            create: function() {
-              element.addEventListener('click', onClick)
-              element.addEventListener('mousemove', onMouseMove)
-              element.addEventListener('mouseenter', onMouseEnter)
-              element.addEventListener('mouseleave', onMouseLeave)
-              xCrosshair.style.display = 'none';
-              yCrosshair.style.display = 'none';
-            },
-            destroy: function() {
-              element.removeEventListener('click', onClick, false);
-              element.removeEventListener('mousemove', onMouseMove, false);
-              element.removeEventListener('mouseenter', onMouseEnter, false);
-              element.removeEventListener('mouseleave', onMouseLeave, false);
-              xCrosshair.style.display = 'none';
-              yCrosshair.style.display = 'none';
-            },
-            freeze: function() {
-              frozen = true;
-              sendFrozenStatus(frozen);
-            },
-            unfreeze: function() {
-              frozen = false;
-              sendFrozenStatus(frozen);
-            },
-            isFrozen: function() {
-              return frozen;
-            },
-            currentPoints: function() {
-              return currentPoints();
-            },
-            element: function() {
-              return element;
-            }
-          };
-
-          chart.crosshairCursor.create()
-        });
+        var hideCrosshairCursor = function(crosshairCursor){
+          crosshairCursor.x.style.display = 'none';
+          crosshairCursor.y.style.display = 'none';
+        };
       }
 
     };
   };
+
 
 }(window, document, Chartist));
