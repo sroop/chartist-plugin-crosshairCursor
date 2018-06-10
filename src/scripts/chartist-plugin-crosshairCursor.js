@@ -36,17 +36,19 @@
 
     return function crosshairCursor(chart) {
       var dataPoints = [];
+      var created = false
 
       if(chart instanceof Chartist.Line) {
 
         chart.on('draw', function(data) {
           if(data.type === 'point') {
             if(data.index === 0) { dataPoints = []; }
-            dataPoints.push(formattedPointData(data));
+            dataPoints.push(formatPointData(data));
           }
         });
 
         chart.on('created', function() {
+
           function CrosshairCursor() {
             this.frozen = false
             this._pointArea = calculatePointArea()
@@ -86,9 +88,16 @@
             }
           };
 
+          CrosshairCursor.prototype.reset = function() {
+            this.frozen = false;
+            this.hide();
+          }
+
           CrosshairCursor.prototype.move = function(e) {
             if(!this.frozen){
-              moveCrosshairCursor.call(this._chartWrapper, e, this._crosshairCursor, this._pointArea);
+              var position = moveCrosshairCursor.call(this._chartWrapper, e, this._crosshairCursor);
+              var highlightedPoints = highlightCurrentPoints(position, this._pointArea);
+              sendMetaData(highlightedPoints);
             }
           };
 
@@ -114,8 +123,13 @@
             return this._chartWrapper;
           };
 
-          chart.crosshairCursor = new CrosshairCursor();
-          chart.crosshairCursor.create();
+          if(!created) {
+            created = true;
+            chart.crosshairCursor = new CrosshairCursor();
+            chart.crosshairCursor.create();
+          } else {
+            chart.crosshairCursor.reset()
+          }
         });
 
         var sendMetaData = function(points) {
@@ -127,9 +141,7 @@
         };
 
         var sendFrozenStatus = function(frozenStatus) {
-          if(options.frozenStatus) {
-            options.frozenStatus(frozenStatus)
-          }
+          options.frozenStatus(frozenStatus)
           chart.eventEmitter.emit('crosshairCursor:frozen', frozenStatus);
         };
 
@@ -145,7 +157,9 @@
           chartWrapper.insertBefore(div, chartWrapper.firstChild);
           var crosshairCursor = document.querySelector('#crosshairCursor-' + type);
           crosshairCursor.style.position = 'absolute';
+
           styleCrosshairCursor(crosshairCursor, type);
+
           return crosshairCursor
         };
 
@@ -164,7 +178,7 @@
           return (cursorPosition >= (pointPosition - padding) && cursorPosition <= (pointPosition + padding));
         };
 
-        var formattedPointData = function(point) {
+        var formatPointData = function(point) {
           var meta = Chartist.deserialize(point.meta);
           meta.value = point.value;
           meta.value.x = point.axisX.ticks[point.index];
@@ -232,21 +246,26 @@
           }
         };
 
-        var moveCrosshairCursor = function(e, crosshairCursor, pointArea){
-          var pos = {};
-          pos.x = e.pageX - this.offsetLeft;
-          pos.y = e.pageY - this.offsetTop;
-          crosshairCursor.x.style.left = pos.x + 'px';
-          crosshairCursor.y.style.top = pos.y + 'px';
+        var moveCrosshairCursor = function(e, crosshairCursor){
+          var crosshairCursorPosition = {};
 
-          dataPoints.forEach(function(point) {
-            var highlighted = cursorIsOnPoint(pos, point.position, pointArea);
+          crosshairCursorPosition.x = e.pageX - this.offsetLeft;
+          crosshairCursorPosition.y = e.pageY - this.offsetTop;
+
+          crosshairCursor.x.style.left = crosshairCursorPosition.x + 'px';
+          crosshairCursor.y.style.top = crosshairCursorPosition.y + 'px';
+
+          return crosshairCursorPosition
+        };
+
+        var highlightCurrentPoints = function(crosshairCursorPosition, pointArea) {
+          return dataPoints.filter(function(point) {
+            var highlighted = cursorIsOnPoint(crosshairCursorPosition, point.position, pointArea);
             toggleHighlight(point, highlighted);
             point.current = highlighted;
+            return highlighted;
           });
-
-          sendMetaData(currentPoints());
-        };
+        }
 
         var clickFn = function(e) {
           e.stopPropagation();
