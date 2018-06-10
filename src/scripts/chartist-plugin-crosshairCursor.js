@@ -36,7 +36,7 @@
 
     return function crosshairCursor(chart) {
       var dataPoints = [];
-      var created = false
+      var created = false;
 
       if(chart instanceof Chartist.Line) {
 
@@ -50,9 +50,9 @@
         chart.on('created', function() {
 
           function CrosshairCursor() {
-            this.frozen = false
-            this._pointArea = calculatePointArea()
-          };
+            this.frozen = false;
+            this._pointArea = calculatePointArea();
+          }
 
           CrosshairCursor.prototype.create = function() {
             var self = this;
@@ -91,7 +91,7 @@
           CrosshairCursor.prototype.reset = function() {
             this.frozen = false;
             this.hide();
-          }
+          };
 
           CrosshairCursor.prototype.move = function(e) {
             if(!this.frozen){
@@ -128,7 +128,7 @@
             chart.crosshairCursor = new CrosshairCursor();
             chart.crosshairCursor.create();
           } else {
-            chart.crosshairCursor.reset()
+            chart.crosshairCursor.reset();
           }
         });
 
@@ -141,7 +141,7 @@
         };
 
         var sendFrozenStatus = function(frozenStatus) {
-          options.frozenStatus(frozenStatus)
+          options.frozenStatus(frozenStatus);
           chart.eventEmitter.emit('crosshairCursor:frozen', frozenStatus);
         };
 
@@ -160,7 +160,7 @@
 
           styleCrosshairCursor(crosshairCursor, type);
 
-          return crosshairCursor
+          return crosshairCursor;
         };
 
         var destroyCrosshairCursor = function(crosshairCursor) {
@@ -169,9 +169,9 @@
         };
 
         var styleCrosshairCursor = function(crosshairCursor, type) {
-          crosshairCursor.style.height = options.styles[type].height
-          crosshairCursor.style.width = options.styles[type].width
-          crosshairCursor.style.backgroundColor = options.styles[type].backgroundColor
+          crosshairCursor.style.height = options.styles[type].height;
+          crosshairCursor.style.width = options.styles[type].width;
+          crosshairCursor.style.backgroundColor = options.styles[type].backgroundColor;
         };
 
         var inPointArea = function(cursorPosition, pointPosition, padding) {
@@ -223,11 +223,11 @@
           element.style.position = 'relative';
 
           return element;
-        }
+        };
 
         var unwrapChart = function(chartWrapper) {
           chartWrapper.outerHTML = chartWrapper.innerHTML;
-        }
+        };
 
         var calculatePointArea = function() {
           var ctPoints = document.querySelectorAll('.ct-point');
@@ -255,7 +255,7 @@
           crosshairCursor.x.style.left = crosshairCursorPosition.x + 'px';
           crosshairCursor.y.style.top = crosshairCursorPosition.y + 'px';
 
-          return crosshairCursorPosition
+          return crosshairCursorPosition;
         };
 
         var highlightCurrentPoints = function(crosshairCursorPosition, pointArea) {
@@ -265,7 +265,7 @@
             point.current = highlighted;
             return highlighted;
           });
-        }
+        };
 
         var clickFn = function(e) {
           e.stopPropagation();
