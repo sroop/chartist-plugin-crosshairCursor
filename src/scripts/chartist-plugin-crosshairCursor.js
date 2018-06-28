@@ -151,9 +151,9 @@
 
     var createCrosshairCursor = function(chartWrapper, type) {
       var div = document.createElement('div');
-      div.setAttribute('id', 'crosshairCursor-' + type);
+      div.className = 'crosshairCursor-' + type;
       chartWrapper.insertBefore(div, chartWrapper.firstChild);
-      var crosshairCursor = document.querySelector('#crosshairCursor-' + type);
+      var crosshairCursor = chartWrapper.querySelector('.crosshairCursor-' + type);
       crosshairCursor.style.position = 'absolute';
 
       styleCrosshairCursor(crosshairCursor, type);
