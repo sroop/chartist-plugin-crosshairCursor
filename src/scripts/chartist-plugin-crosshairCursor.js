@@ -13,7 +13,16 @@
     var noop = function() {};
 
     var defaultOptions = {
-      wrapperName: '.crosshairCursorWrapper',
+      wrapChart: function(chart) {
+        var chartWrapper = document.createElement('div');
+        chartWrapper.className = "crosshairCursor-wrapper";
+        chart.container.parentNode.insertBefore(chartWrapper, chart.container);
+        chartWrapper.appendChild(chart.container);
+        chartWrapper.style.cursor = 'pointer';
+        chartWrapper.style.position = 'relative';
+
+        return chartWrapper;
+      },
       x: false,
       y: false,
       click: noop,
@@ -35,14 +44,22 @@
 
     options = Chartist.extend({}, defaultOptions, options);
 
-    function CrosshairCursor() {
+    function CrosshairCursor(chart) {
+      this._chart = chart
+      this._chartWrapper = undefined;
       this.frozen = false;
       this._pointArea = calculatePointArea();
     }
 
+    CrosshairCursor.prototype.wrapChart = function() {
+      if(this._chartWrapper) return this._chartWrapper;
+
+      this._chartWrapper = options.wrapChart(this._chart);
+    }
+
     CrosshairCursor.prototype.create = function() {
       var self = this;
-      this._chartWrapper = wrapChart();
+      this.wrapChart();
 
       self._crosshairCursor = {};
       self._crosshairCursor.x = createCrosshairCursor(self._chartWrapper, 'x');
@@ -188,24 +205,6 @@
       }
     };
 
-    var wrapChart = function() {
-      var element = document.createElement('div');
-      if(options.wrapperName.startsWith('#')) {
-        element.id = options.wrapperName.substr(1);
-      } else if(options.wrapperName.startsWith('.')) {
-        element.className = options.wrapperName.substr(1);
-      } else {
-        throw('Must be a class or id!');
-      }
-      chart.container.parentNode.insertBefore(element, chart.container);
-      element.appendChild(chart.container);
-      element.className = element.className + ' crosshairCursor-wrapper';
-      element.style.cursor = 'pointer';
-      element.style.position = 'relative';
-
-      return element;
-    };
-
     var unwrapChart = function(chartWrapper) {
       chartWrapper.outerHTML = chartWrapper.innerHTML;
     };
@@ -274,7 +273,7 @@
         chart.on('created', function() {
           if(!created) {
             created = true;
-            chart.crosshairCursor = new CrosshairCursor();
+            chart.crosshairCursor = new CrosshairCursor(chart);
             chart.crosshairCursor.create();
           } else {
             chart.crosshairCursor.reset();
