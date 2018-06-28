@@ -116,10 +116,10 @@
       );
 
       // Using freeze functions however the user wants:
-      var onkeydown = function(){
-        chart.crosshairCursor.isFrozen() ? chart.crosshairCursor.unfreeze() : chart.crosshairCursor.freeze()
-      };
-      if(chart.crosshairCursor) chart.crosshairCursor.element().addEventListener('onkeydown', onkeydown)
+      // var onkeydown = function(){
+      //   chart.crosshairCursor.isFrozen() ? chart.crosshairCursor.unfreeze() : chart.crosshairCursor.freeze()
+      // };
+      // if(chart.crosshairCursor) chart.crosshairCursor.element().addEventListener('onkeydown', onkeydown)
 
       rivets.formatters.json = JSON.stringify
       rivets.bind(document.querySelector('.info'), { data: data })
