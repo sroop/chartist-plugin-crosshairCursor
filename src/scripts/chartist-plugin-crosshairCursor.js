@@ -26,7 +26,7 @@
       x: false,
       y: false,
       click: noop,
-      pointHover: noop,
+      hover: noop,
       frozenStatus: noop,
       styles: {
         x: {
@@ -134,7 +134,7 @@
       var meta = points.map(function(point) {
         return point.meta;
       });
-      options.pointHover(this, meta);
+      options.hover(this, meta);
       this._chart.eventEmitter.emit('crosshairCursor:hovered', meta);
     };
 
@@ -249,8 +249,11 @@
 
     var clickFn = function(e) {
       e.stopPropagation();
-      options.click(this, currentPoints());
-      this._chart.eventEmitter.emit('crosshairCursor:click');
+      var meta = currentPoints().map(function(point) {
+        return point.meta;
+      });
+      options.click(this, meta);
+      this._chart.eventEmitter.emit('crosshairCursor:click', meta);
     };
 
     var hideCrosshairCursor = function(crosshairCursor){
