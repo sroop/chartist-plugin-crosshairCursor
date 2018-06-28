@@ -25,10 +25,14 @@
       }
       h1 { margin-bottom: 0px; text-transform: uppercase; }
       h3 { margin-top: 10px; text-transform: uppercase; font-size: 13px; }
-      .info { width: 500px; }
+      .info { 
+        width: 500px; 
+        padding: 20px;
+        background: #f2f2f2;
+      }
       .crosshairCursor-wrapper {
         width: 600px;
-        height: 120px;
+        height: 300px;
         margin: 50px;
       }
       .ct-point {
@@ -62,14 +66,14 @@
     <div class='chart'></div>
     <div class='info'>
       <p>FROZEN: { data.frozen | json }</p>
-      <p>HIGHLIGHTED POINTS: { data.highlightedPoints | json }</p>
+      <p>{ data.total | json } HIGHLIGHTED POINTS: { data.highlightedPoints | json }</p>
     </div>
 
     <script src='https://cdnjs.cloudflare.com/ajax/libs/rivets/0.9.6/rivets.bundled.min.js'></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.0/chartist.min.js"></script>
     <script src="src/scripts/chartist-plugin-crosshairCursor.js"></script>
     <script>
-      var data = { frozen: false }
+      var data = { frozen: false, total: 0 }
 
       var chart = new Chartist.Line('.chart', {
       labels: ['A', 'B', 'C', 'D', 'E'],
@@ -85,6 +89,8 @@
             ]
           }
         ]}, {
+          width: '600px',
+          height: '300px',
           fullWidth: true,
           chartPadding: {
             right: 40
@@ -98,12 +104,12 @@
                 // data.highlightedPoints = points.length // click to see point data
               },
               pointHover: function(cursor, points) {
-                data.highlightedPoints = points.length // hover to see point data
+                data.highlightedPoints = points // hover to see point data
+                data.total = points.length
               },
               frozenStatus: function(status) {
                 data.frozen = status
               }
-              // initial: 1
             })
           ]
         }
@@ -114,14 +120,6 @@
         chart.crosshairCursor.isFrozen() ? chart.crosshairCursor.unfreeze() : chart.crosshairCursor.freeze()
       };
       if(chart.crosshairCursor) chart.crosshairCursor.element().addEventListener('onkeydown', onkeydown)
-
-      // chart.on('crosshairCursor:frozen', function (isFrozen) {
-      //   data.frozen = isFrozen
-      // }, false);
-
-      // chart.on('crosshairCursor:hovered', function(highlightedPoints) {
-      //   data.highlightedPoints = highlightedPoints
-      // }, false);
 
       rivets.formatters.json = JSON.stringify
       rivets.bind(document.querySelector('.info'), { data: data })
