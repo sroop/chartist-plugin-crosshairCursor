@@ -66,7 +66,7 @@
       self._crosshairCursor.y = createCrosshairCursor(self._chartWrapper, 'y');
       self.hide(self._crosshairCursor);
 
-      self._chartWrapper.addEventListener('click', clickFn);
+      self._chartWrapper.addEventListener('click', clickFn.bind(self));
       self._chartWrapper.addEventListener('mousemove', self.move.bind(self));
       self._chartWrapper.addEventListener('mouseenter', self.show.bind(self));
       self._chartWrapper.addEventListener('mouseleave', self.hide.bind(self));
@@ -100,18 +100,18 @@
       if(!this.frozen){
         var position = moveCrosshairCursor.call(this._chartWrapper, e, this._crosshairCursor);
         var highlightedPoints = highlightCurrentPoints(position, this._pointArea);
-        sendMetaData(highlightedPoints);
+        sendMetaData.call(this, highlightedPoints);
       }
     };
 
     CrosshairCursor.prototype.freeze = function() {
       this.frozen = true;
-      sendFrozenStatus(this.frozen);
+      sendFrozenStatus.call(this);
     };
 
     CrosshairCursor.prototype.unfreeze = function() {
       this.frozen = false;
-      sendFrozenStatus(this.frozen);
+      sendFrozenStatus.call(this);
     };
 
     CrosshairCursor.prototype.isFrozen = function() {
@@ -134,13 +134,13 @@
       var meta = points.map(function(point) {
         return point.meta;
       });
-      options.pointHover(chart.crosshairCursor, meta);
-      chart.eventEmitter.emit('crosshairCursor:hovered', meta);
+      options.pointHover(this, meta);
+      this._chart.eventEmitter.emit('crosshairCursor:hovered', meta);
     };
 
-    var sendFrozenStatus = function(frozenStatus) {
-      options.frozenStatus(frozenStatus);
-      chart.eventEmitter.emit('crosshairCursor:frozen', frozenStatus);
+    var sendFrozenStatus = function() {
+      options.frozenStatus(this.frozen);
+      this._chart.eventEmitter.emit('crosshairCursor:frozen', this.frozen);
     };
 
     var currentPoints = function() {
@@ -249,8 +249,8 @@
 
     var clickFn = function(e) {
       e.stopPropagation();
-      options.click(chart.crosshairCursor, currentPoints());
-      chart.eventEmitter.emit('crosshairCursor:click');
+      options.click(this, currentPoints());
+      this._chart.eventEmitter.emit('crosshairCursor:click');
     };
 
     var hideCrosshairCursor = function(crosshairCursor){
