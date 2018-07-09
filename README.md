@@ -14,6 +14,10 @@ bower install chartist-plugin-crosshairCursor
 npm install chartist-plugin-crosshaircursor
 ```
 
+```
+yarn add chartist-plugin-crosshaircursor
+```
+
 ## Available options with their defaults
 
 ```javascript
