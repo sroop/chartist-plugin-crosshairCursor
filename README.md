@@ -26,11 +26,11 @@ var defaultOptions = {
 
     return chartWrapper;
   },
-  x: false,
-  y: false,
+  x: true,
+  y: true,
   click: noop,
   hover: noop,
-  frozenStatus: noop,
+  freezeChange: noop,
   styles: {
     x: {
       backgroundColor: '#dedede',
@@ -50,7 +50,7 @@ var defaultOptions = {
 In order for the plugin to work, the chart must be wrapped in a parent element. The default function provided to the `wrapChart` option programmatically generates a parent element and wraps the chart for you, which by default is in a `div` element with the class name `crosshairCursor-wrapper`. If you want to change this behaviour, you can pass in your own chart wrapping function ensuring the parent element is returned.
 
 ### x / y
-The crosshair cursor type can be customized to an x-axis cursor, y-axis cursor or a full crosshair cursor spanning both axis. Set `x` and `y` to `true` to create a full crosshair cursor. Set only `x` to `true` to generate an x-axis cursor. Set only `y` to `true` to generate a y-axis cursor. By default, both `x` and `y` are set to `false`.
+The crosshair cursor type can be customized to an x-axis cursor, y-axis cursor or a full crosshair cursor spanning both axis. By default, both `x` and `y` are set to `true`, creating a full crosshair. To generate an x-axis cursor, set only `x` to `true`. To generate a y-axis curusor, set only `y` to `true`. `x` and `y` cannot both be set to `false`.
 
 ### click
 The `click` option allows you to pass in a custom click function which provides you with two arguments: the crosshairCursor object, which exposes a bunch of functions you can use within the function, and the current data points you are hovered over (if any) at the moment of click. As an example, you can easily write a function that locks the crosshair cursor in place on click if that is the desired behaviour:
@@ -70,14 +70,14 @@ hover: function(crosshairCursor, chartData) {
 ```
 By default, the `hover` option is an empty function.
 
-### frozenStatus
-The `frozenStatus` option allows you to pass in a custom function which is ran each time the crosshair cursor is frozen or unfrozen. The new frozen status is passed as the function argument and as demonstrated with the `click` option example above, the crosshair cursor can be frozen and unfrozen really easily, if that behaviour is required.
+### freezeChange
+The `freezeChange` option allows you to pass in a custom function which is ran each time the crosshair cursor is frozen or unfrozen. The new frozen status is passed as the function argument and as demonstrated with the `click` option example above, the crosshair cursor can be frozen and unfrozen really easily, if that behaviour is required.
 ```javascript
-frozenStatus: function(status) {
+freezeChange: function(status) {
   // custom function
 }
 ```
-By default, the `frozenStatus` option is an empty function.
+By default, the `freezeChange` option is an empty function.
 
 ### styles
 The `styles` option is an object that defines the crosshair cursor's styling. You can set the cursor colour using the `backgroundColor` attribute for each crosshair cursor type, as well as setting the width and height. If you don't define any `styles`, it will default to the following:
@@ -94,6 +94,48 @@ styles: {
     height: '1px'
   }
 }
+```
+
+## Available methods
+
+### create
+`create` is executed when the chart is first created on the page. It wraps the chart in a container element and generates the crosshair cursors. You can call this method yourself if you've used the `destroy` method below and need to recreate the crosshairCursor functionality.
+
+### destroy
+`destroy` unwraps the chart and deletes the crosshair cursors generated on `create`. It restores your chart, as if the plugin wasn't in use. You can call `create` to re-initialize the plugin setup.
+
+### wrapChart
+`wrapChart` is called within the `create` method. If you've passed in your own custom chart wrapping function, it will be called here. if you don't pass in your own custom chart wrapping function, the default function will be used (see `wrapChart` part in the Avilable options section above).
+
+### show
+`show` makes the crosshair cursors visible by css, if they are hidden.
+
+### hide
+`hide` makes the crosshair cursors invisible by css: `display: none;`, if they are visible.
+
+### reset
+`reset` unfreezes the chart (if it's frozen) and hides the crosshair cursors.
+
+### freeze
+`freeze` freezes the crosshair cursor in place on the chart and calls the `freezeChange` function (if the user has passed one into the options object).
+
+### unfreeze
+`unfreeze` unfreezes the crosshair cursor and calls the `freezeChange` function (if the user has passed one into the options object).
+
+### isFrozen
+`isFrozen` returns the current frozen status of the chart.
+
+### currentPoints
+`currentPoints` returns a list of chart data points currently hovered over by the crosshair, if there are any.
+
+### element
+`element` returns the chart parent container, generated by the `wrapChart` function. You can set your own event listeners to this element, if desired. For example, you could freeze the chart whenever the letter f gets pressed:
+```javascript
+var freezeCursor = function(){
+  chart.crosshairCursor.isFrozen() ? chart.crosshairCursor.unfreeze() : chart.crosshairCursor.freeze()
+};
+chart.crosshairCursor.element().addEventListener('onkeydown', freezeCursor)
+
 ```
 
 ## Sample usage for a line chart
@@ -121,7 +163,7 @@ var chart = new Chartist.Line('.chart', {
      plugins: [
        Chartist.plugins.crosshairCursor({
          x: true,
-         y: true,
+         y: false,
          click: function(crosshairCursor, chartData) {
            crosshairCursor.isFrozen() ? crosshairCursor.unfreeze() : crosshairCursor.freeze()
          },
@@ -152,7 +194,7 @@ chart.on('crosshairCursor:click', function(highlightedPoints) {
 ```
 
 ### Available classes
-```scss
+```css
 .crosshairCursor-wrapper {} // the default chart wrapper class name, if a custom `wrapChart` function is not set
 .crosshairCursor-x {} // the x-axis cursor (colour, width and height to be set in the "styles" option object)
 .crosshairCursor-y {} // the y-axis cursor (colour, width and height to be set in the "styles" option object)
@@ -161,12 +203,12 @@ chart.on('crosshairCursor:click', function(highlightedPoints) {
 
 ### Sample CSS 
 
-```scss
+```css
 .crosshairCursor-wrapper {
   height: 300px;
   width: 600px;
-  line.crosshairCursor-highlight {
-    stroke: #FFDA34 // the colour of any highlighted data points
-  }
+}
+.crosshairCursor-highlight {
+  stroke: #FFDA34 // the colour of any highlighted data points
 }
 ```
