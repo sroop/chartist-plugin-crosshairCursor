@@ -10,6 +10,10 @@ A Chartist.js plugin to easily add a data crosshair to your charts!
 bower install chartist-plugin-crosshairCursor
 ```
 
+```
+npm install chartist-plugin-crosshaircursor
+```
+
 ## Available options with their defaults
 
 ```javascript
