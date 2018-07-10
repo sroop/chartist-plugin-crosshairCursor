@@ -29,7 +29,7 @@
       var noop = function() {};
 
       //private methods
-      var sendMetaData, sendFrozenStatus, currentPoints, createCrosshairCursor, destroyCrosshairCursor, styleCrosshairCursor, unwrapChart, calculatePointArea, showCrosshairCursor, moveCrosshairCursor, highlightCurrentPoints, clickFn, hideCrosshairCursor;
+      var sendMetaData, freezeChange, currentPoints, createCrosshairCursor, destroyCrosshairCursor, styleCrosshairCursor, unwrapChart, calculatePointArea, showCrosshairCursor, moveCrosshairCursor, highlightCurrentPoints, clickFn, hideCrosshairCursor;
 
       var defaultOptions = {
         wrapChart: function(chart) {
@@ -42,11 +42,11 @@
 
           return chartWrapper;
         },
-        x: false,
-        y: false,
+        x: true,
+        y: true,
         click: noop,
         hover: noop,
-        frozenStatus: noop,
+        freezeChange: noop,
         styles: {
           x: {
             backgroundColor: '#dedede',
@@ -124,12 +124,12 @@
 
       CrosshairCursor.prototype.freeze = function() {
         this.frozen = true;
-        sendFrozenStatus.call(this);
+        freezeChange.call(this);
       };
 
       CrosshairCursor.prototype.unfreeze = function() {
         this.frozen = false;
-        sendFrozenStatus.call(this);
+        freezeChange.call(this);
       };
 
       CrosshairCursor.prototype.isFrozen = function() {
@@ -152,8 +152,8 @@
         this._chart.eventEmitter.emit('crosshairCursor:hovered', meta);
       };
 
-      sendFrozenStatus = function() {
-        options.frozenStatus(this.frozen);
+      freezeChange = function() {
+        options.freezeChange(this.frozen);
         this._chart.eventEmitter.emit('crosshairCursor:frozen', this.frozen);
       };
 
