@@ -65,7 +65,6 @@
 
       function CrosshairCursor(chart) {
         this._chart = chart;
-        this._chartWrapper = undefined;
         this.frozen = false;
         this._pointArea = calculatePointArea();
       }
@@ -77,26 +76,23 @@
       };
 
       CrosshairCursor.prototype.create = function() {
-        var self = this;
         this.wrapChart();
 
-        self._crosshairCursor = {};
-        self._crosshairCursor.x = createCrosshairCursor(self._chartWrapper, 'x');
-        self._crosshairCursor.y = createCrosshairCursor(self._chartWrapper, 'y');
-        self.hide(self._crosshairCursor);
+        this._crosshairCursor = {};
+        this._crosshairCursor.x = createCrosshairCursor(this._chartWrapper, 'x');
+        this._crosshairCursor.y = createCrosshairCursor(this._chartWrapper, 'y');
+        this.hide(this._crosshairCursor);
 
-        self._chartWrapper.addEventListener('click', clickFn.bind(self));
-        self._chartWrapper.addEventListener('mousemove', self.move.bind(self));
-        self._chartWrapper.addEventListener('mouseenter', self.show.bind(self));
-        self._chartWrapper.addEventListener('mouseleave', self.hide.bind(self));
+        this._chartWrapper.addEventListener('click', clickFn.bind(this));
+        this._chartWrapper.addEventListener('mousemove', this.move.bind(this));
+        this._chartWrapper.addEventListener('mouseenter', this.show.bind(this));
+        this._chartWrapper.addEventListener('mouseleave', this.hide.bind(this));
       };
 
       CrosshairCursor.prototype.destroy = function() {
-        var self = this;
+        destroyCrosshairCursor(this._crosshairCursor);
 
-        destroyCrosshairCursor(self._crosshairCursor);
-
-        unwrapChart(self._chartWrapper);
+        unwrapChart(this._chartWrapper);
       };
 
       CrosshairCursor.prototype.show = function() {
@@ -181,9 +177,10 @@
       };
 
       styleCrosshairCursor = function(crosshairCursor, type) {
-        crosshairCursor.style.height = options.styles[type].height;
-        crosshairCursor.style.width = options.styles[type].width;
-        crosshairCursor.style.backgroundColor = options.styles[type].backgroundColor;
+        var styles = options.styles[type];
+        Object.keys(styles).forEach(function(property) {
+          crosshairCursor.style[property] = styles[property];
+        });
       };
 
       var inPointArea = function(cursorPosition, pointPosition, padding) {
@@ -211,11 +208,11 @@
 
       var cursorIsOnPoint = function(cursorPosition, pointPosition, padding) {
         if(options.x && options.y) {
-          return inPointArea(cursorPosition.x, pointPosition.x, padding) || inPointArea(cursorPosition.y, pointPosition.y , padding);
+          return inPointArea(cursorPosition.x, pointPosition.x, padding) || inPointArea(cursorPosition.y, pointPosition.y, padding);
         } else if(options.x) {
           return inPointArea(cursorPosition.x, pointPosition.x, padding);
         } else if(options.y) {
-          return inPointArea(cursorPosition.y, pointPosition.y , padding);
+          return inPointArea(cursorPosition.y, pointPosition.y, padding);
         }
       };
 
@@ -297,6 +294,8 @@
             }
           });
 
+        } else {
+          throw 'Chart must be an instance of Chartist.Line';
         }
 
       };
